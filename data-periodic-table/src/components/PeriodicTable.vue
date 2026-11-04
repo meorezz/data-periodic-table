@@ -73,18 +73,46 @@ function escapeHtml(value) {
   }[character]))
 }
 
-function createElement(number, row, headers) {
-  const values = Object.fromEntries(headers.map((header, index) => [header, row[index] ?? '']))
-  const name = values.Name || values.name || `Record ${number}`
-  const photo = values.Photo || values.photo
+function getValue(values, field) {
+  const key = Object.keys(values).find((candidate) => candidate.trim().toLowerCase() === field.toLowerCase())
+  return key ? values[key] : ''
+}
+
+function parseNetWorth(value) {
+  const normalized = String(value ?? '').replace(/[$,\s]/g, '').toUpperCase()
+  const amount = Number.parseFloat(normalized)
+  if (!Number.isFinite(amount)) return 0
+  if (normalized.endsWith('M')) return amount * 1_000_000
+  if (normalized.endsWith('K')) return amount * 1_000
+  return amount
+}
+
+function createElement(number, chemicalData, row, headers) {
+  const values = Object.fromEntries(headers.map((header, index) => [header, row?.[index] ?? '']))
+  const [symbol, chemicalName, weight] = chemicalData
+  const name = getValue(values, 'name') || chemicalName
+  const photo = getValue(values, 'photo')
+  const netWorth = parseNetWorth(getValue(values, 'net worth'))
+  const netWorthClass = netWorth < 100_000 ? 'net-worth-low' : netWorth < 200_000 ? 'net-worth-medium' : 'net-worth-high'
   const details = headers
-    .filter((header) => !['Name', 'name', 'Photo', 'photo'].includes(header))
+    .filter((header) => !['name', 'photo'].includes(header.trim().toLowerCase()))
     .map((header) => `<small>${escapeHtml(header)}: ${escapeHtml(values[header])}</small>`)
     .join('')
   const element = document.createElement('button')
-  element.className = `element ${category(number)} profile-element`
+  element.className = `element ${category(number)}`
   element.type = 'button'
-  element.innerHTML = `${photo ? `<img src="${escapeHtml(photo)}" alt="" />` : ''}<span class="number">#${number}</span><strong>${escapeHtml(name)}</strong>${details}`
+  element.innerHTML = `
+    <span class="chemical-content">
+      <span class="number">${number}</span>
+      <strong>${escapeHtml(symbol)}</strong>
+      <span>${escapeHtml(chemicalName)}</span>
+      <small>${escapeHtml(weight)}</small>
+    </span>
+    <span class="sheet-content ${netWorthClass}">
+      ${photo ? `<img src="${escapeHtml(photo)}" alt="" />` : ''}
+      <strong>${escapeHtml(name)}</strong>
+      ${details}
+    </span>`
   element.addEventListener('click', () => { selectedElement.value = { number, values, name } })
   return new CSS3DObject(element)
 }
@@ -145,8 +173,8 @@ onMounted(() => {
   camera = new THREE.PerspectiveCamera(40, width / height, 1, 10000)
   camera.position.z = 3000
   scene = new THREE.Scene()
-  props.rows.slice(0, 118).forEach((data, index) => {
-    const object = createElement(index + 1, data, props.headers)
+  elementRows.forEach((chemicalData, index) => {
+    const object = createElement(index + 1, chemicalData, props.rows[index], props.headers)
     objects.push(object)
     scene.add(object)
     makeTargets(object, index + 1)
@@ -198,6 +226,7 @@ onBeforeUnmount(() => {
     <div ref="viewport" class="viewport"></div>
     <div class="views">
       <button v-for="view in ['table', 'sphere', 'helix', 'grid']" :key="view" @click="transform(view)">{{ view }}</button>
+      <span class="legend"><i class="legend-low"></i>Under $100K <i class="legend-medium"></i>$100K–$200K <i class="legend-high"></i>Over $200K</span>
     </div>
     <aside v-if="selectedElement" class="details">
       <button class="close" aria-label="Close element details" @click="selectedElement = null">×</button>
@@ -223,18 +252,29 @@ h1 { margin: 0; color: #fff; font-size: 26px; }
 .views button:hover, .sign-out:hover { background: #263453; }
 .viewport { position: relative; height: min(70vh, 720px); min-height: 480px; }
 :global(.element) { width: 120px; height: 160px; padding: 10px; box-sizing: border-box; border: 1px solid rgba(255,255,255,.55); border-radius: 10px; color: white; text-align: left; cursor: pointer; font-family: inherit; background: rgba(25, 45, 80, .82); box-shadow: 0 0 18px rgba(100, 160, 255, .18); transition: box-shadow .2s, transform .2s; }
-:global(.profile-element) { overflow: hidden; }
-:global(.profile-element img) { display: block; width: 42px; height: 42px; margin: 0 auto 5px; border-radius: 50%; object-fit: cover; }
-:global(.profile-element strong) { display: block; max-height: 28px; overflow: hidden; margin: 0 0 5px; font-size: 15px; line-height: 1.05; text-align: center; text-overflow: ellipsis; }
-:global(.profile-element small) { display: block; overflow: hidden; margin-top: 3px; font-size: 9px; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+:global(.chemical-content) { display: block; }
+:global(.sheet-content) { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: center; padding: 8px; box-sizing: border-box; opacity: 0; overflow: hidden; text-align: center; transition: opacity .15s ease; }
+:global(.element:hover .sheet-content) { opacity: 1; }
+:global(.sheet-content img) { width: 48px; height: 48px; margin: 0 auto 5px; border-radius: 50%; object-fit: cover; }
+:global(.sheet-content strong) { display: block; max-height: 30px; overflow: hidden; font-size: 13px; line-height: 1.05; text-overflow: ellipsis; }
+:global(.sheet-content small) { display: block; overflow: hidden; margin-top: 3px; font-size: 9px; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+:global(.sheet-content.net-worth-low) { background: rgba(190, 45, 45, .96); }
+:global(.sheet-content.net-worth-medium) { background: rgba(218, 125, 35, .96); }
+:global(.sheet-content.net-worth-high) { background: rgba(42, 139, 76, .96); }
 :global(.element:hover) { box-shadow: 0 0 24px rgba(160, 210, 255, .7); }
 :global(.element strong) { display: block; margin-top: 20px; font-size: 38px; line-height: 1; text-align: center; }
 :global(.element span:not(.number)), :global(.element small) { display: block; text-align: center; }
 :global(.element span:not(.number)) { margin-top: 8px; font-size: 12px; }
 :global(.element small) { margin-top: 9px; color: #b7c8ec; }
 :global(.number) { float: right; font-size: 11px; }
+:global(.element .sheet-content) { margin-top: 0; font-size: initial; }
+:global(.element .sheet-content strong) { margin-top: 0; font-size: 13px; }
+:global(.element .sheet-content small) { margin-top: 3px; color: white; }
 :global(.nonmetal) { background: rgba(38, 104, 119, .88); }:global(.noble-gas) { background: rgba(100, 62, 132, .88); }:global(.metalloid) { background: rgba(117, 91, 47, .9); }:global(.lanthanide) { background: rgba(46, 106, 91, .9); }:global(.actinide) { background: rgba(107, 60, 75, .9); }
 .details { position: fixed; right: 40px; bottom: 40px; width: 220px; padding: 20px; border: 1px solid #52658c; border-radius: 12px; background: rgba(14, 22, 38, .95); box-shadow: 0 10px 30px #0008; }
+.legend { display: flex; align-items: center; gap: 5px; margin-left: 14px; color: #b7c8ec; font-size: 11px; }
+.legend i { width: 12px; height: 12px; border-radius: 2px; }
+.legend-low { background: #be2d2d; }.legend-medium { background: #da7d23; }.legend-high { background: #2a8b4c; }
 .details strong { display: block; font-size: 48px; color: #9cc4ff; }.details h2 { margin: 4px 0; color: #fff; font-size: 20px; }.details p { color: #b5c1d9; font-size: 13px; }.detail-number { color: #91a1c2; font-size: 12px; }.close { float: right; border: 0; background: none; color: #fff; font-size: 24px; cursor: pointer; }
 @media (max-width: 700px) { .periodic-page { padding: 16px; border-radius: 0; min-height: 100vh; }.toolbar { align-items: flex-start; flex-direction: column; }.views { flex-wrap: wrap; }.viewport { min-height: 430px; height: 62vh; }.details { right: 16px; bottom: 16px; }.element { width: 100px; height: 140px; } }
 </style>

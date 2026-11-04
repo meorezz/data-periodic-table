@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 #   https://docs.google.com/spreadsheets/d/<<< THIS PART >>>/edit
 SHEET_ID = os.getenv("SHEET_ID", "1kBEQG4bh92aEFbxOLEA3dmAFLM66sKqihRYqwyyIXxM")
 # The name of the tab at the bottom of the sheet (case-sensitive)
-WORKSHEET_NAME = os.getenv("WORKSHEET_NAME", "Sheet1")
+WORKSHEET_NAME = os.getenv("WORKSHEET_NAME", "Data Template")
 # ---------------------------------------------------------------------------
 
 # --- Firebase Admin setup (uses the key file you download from the console) ---
@@ -57,6 +57,12 @@ def get_current_user(authorization: str = Header(default="")):
     try:
         return auth.verify_id_token(token)
     except Exception as e:
+        if "Token used too early" in str(e):
+            time.sleep(TOKEN_CLOCK_DRIFT_RETRY_SECONDS)
+            try:
+                return auth.verify_id_token(token)
+            except Exception as retry_error:
+                raise HTTPException(status_code=401, detail=f"Invalid token: {retry_error}")
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
@@ -91,6 +97,7 @@ def me(decoded=Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 _cache = {"time": 0, "data": None}
 CACHE_SECONDS = 30  # avoids hitting Google's read quota on every refresh
+TOKEN_CLOCK_DRIFT_RETRY_SECONDS = 3
 
 
 @app.get("/api/sheet")
