@@ -27,12 +27,17 @@ defineEmits(['sign-in'])
 
 <style scoped>
 .card {
-  max-width: 360px;
-  padding: 48px 56px;
-  border: 1px solid #eee;
-  border-radius: 6px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 48px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
