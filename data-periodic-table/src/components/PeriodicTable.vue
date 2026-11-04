@@ -25,9 +25,16 @@ const TABLE_COLUMNS = 20
 const TABLE_ROWS = 10
 const TABLE_CELL_WIDTH = 140
 const TABLE_CELL_HEIGHT = 180
-const GRID_COLUMNS = 10
-const GRID_ROWS = 4
-const GRID_LAYERS = 5
+const GRID_LENGTH = 10
+const GRID_HEIGHT = 4
+const GRID_WIDTH = 5
+const GRID_CELL_WIDTH = 400
+const GRID_CELL_HEIGHT = 400
+const GRID_CELL_DEPTH = 700
+const HELIX_STRANDS = 2
+const HELIX_RADIUS = 900
+const HELIX_ANGLE_STEP = 0.22
+const HELIX_AXIAL_STEP = 30
 
 const elementRows = [
   ['H', 'Hydrogen', '1.008'], ['He', 'Helium', '4.003'], ['Li', 'Lithium', '6.94'], ['Be', 'Beryllium', '9.012'], ['B', 'Boron', '10.81'], ['C', 'Carbon', '12.011'], ['N', 'Nitrogen', '14.007'], ['O', 'Oxygen', '15.999'], ['F', 'Fluorine', '18.998'], ['Ne', 'Neon', '20.180'],
@@ -137,22 +144,26 @@ function makeTargets(object, number) {
 
   const helix = new THREE.Object3D()
   const helixIndex = number - 1
-  const strand = helixIndex % 2
-  const strandIndex = Math.floor(helixIndex / 2)
-  const angle = strandIndex * 0.28 + strand * Math.PI
-  helix.position.setFromCylindricalCoords(900, angle, (strandIndex - 29) * 30)
+  const strand = helixIndex % HELIX_STRANDS
+  const strandIndex = Math.floor(helixIndex / HELIX_STRANDS)
+  const angle = strandIndex * HELIX_ANGLE_STEP + strand * Math.PI
+  helix.position.setFromCylindricalCoords(
+    HELIX_RADIUS,
+    angle,
+    (strandIndex - 29) * HELIX_AXIAL_STEP,
+  )
   const helixVector = new THREE.Vector3().copy(helix.position)
   helix.lookAt(helixVector.multiplyScalar(2))
   targets.helix.push(helix)
 
   const grid = new THREE.Object3D()
   const gridIndex = number - 1
-  const gridColumn = gridIndex % GRID_COLUMNS
-  const gridRow = Math.floor(gridIndex / GRID_COLUMNS) % GRID_ROWS
-  const gridLayer = Math.floor(gridIndex / (GRID_COLUMNS * GRID_ROWS))
-  grid.position.x = (gridColumn - (GRID_COLUMNS - 1) / 2) * 400
-  grid.position.y = ((GRID_ROWS - 1) / 2 - gridRow) * 400
-  grid.position.z = ((GRID_LAYERS - 1) / 2 - gridLayer) * 400
+  const gridColumn = gridIndex % GRID_WIDTH
+  const gridRow = Math.floor(gridIndex / GRID_WIDTH) % GRID_HEIGHT
+  const gridLayer = Math.floor(gridIndex / (GRID_WIDTH * GRID_HEIGHT))
+  grid.position.x = (gridColumn - (GRID_WIDTH - 1) / 2) * GRID_CELL_WIDTH
+  grid.position.y = ((GRID_HEIGHT - 1) / 2 - gridRow) * GRID_CELL_HEIGHT
+  grid.position.z = ((GRID_LENGTH - 1) / 2 - gridLayer) * GRID_CELL_DEPTH
   targets.grid.push(grid)
   object.position.set(0, 0, 0)
 }
@@ -265,7 +276,7 @@ h1 { margin: 0; color: #fff; font-size: 26px; }
 .views { display: flex; justify-content: center; gap: 7px; padding-top: 10px; }
 .views button:hover, .sign-out:hover { background: #263453; }
 .viewport { position: relative; height: min(70vh, 720px); min-height: 480px; }
-:global(.element) { width: 120px; height: 160px; padding: 10px; box-sizing: border-box; border: 1px solid rgba(255,255,255,.55); border-radius: 10px; color: white; text-align: left; cursor: pointer; font-family: inherit; background: rgba(25, 45, 80, .82); box-shadow: 0 0 18px rgba(100, 160, 255, .18); transition: box-shadow .2s, transform .2s; }
+:global(.element) { width: 120px; height: 160px; padding: 10px; box-sizing: border-box; border: 1px solid #008b8b; border-radius: 10px; color: white; text-align: left; cursor: pointer; font-family: inherit; background: #005b5b; box-shadow: 0 0 18px rgba(0, 139, 139, .22); transition: box-shadow .2s, transform .2s; }
 :global(.chemical-content) { display: block; }
 :global(.sheet-content) { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: center; padding: 8px; box-sizing: border-box; opacity: 0; overflow: hidden; text-align: center; transition: opacity .15s ease; }
 :global(.element:hover .sheet-content) { opacity: 1; }
@@ -284,7 +295,11 @@ h1 { margin: 0; color: #fff; font-size: 26px; }
 :global(.element .sheet-content) { margin-top: 0; font-size: initial; }
 :global(.element .sheet-content strong) { margin-top: 0; font-size: 13px; }
 :global(.element .sheet-content small) { margin-top: 3px; color: white; }
-:global(.nonmetal) { background: rgba(38, 104, 119, .88); }:global(.noble-gas) { background: rgba(100, 62, 132, .88); }:global(.metalloid) { background: rgba(117, 91, 47, .9); }:global(.lanthanide) { background: rgba(46, 106, 91, .9); }:global(.actinide) { background: rgba(107, 60, 75, .9); }
+:global(.metal) { background: #005b5b; }
+:global(.nonmetal) { background: #006d6d; }
+:global(.noble-gas) { background: #004848; }
+:global(.metalloid) { background: #006363; }
+:global(.lanthanide), :global(.actinide) { background: #005252; }
 .details { position: fixed; right: 40px; bottom: 40px; width: 220px; padding: 20px; border: 1px solid #52658c; border-radius: 12px; background: rgba(14, 22, 38, .95); box-shadow: 0 10px 30px #0008; }
 .legend { display: flex; align-items: center; gap: 5px; margin-left: 14px; padding: 3px 5px; color: #fff; font-size: 9px; }
 .legend-bar { width: 92px; height: 7px; border: 1px solid #fff; background: linear-gradient(90deg, #e53935 0%, #ff8c2f 30%, #ffe52f 55%, #9bd438 78%, #2a8b4c 100%); }
