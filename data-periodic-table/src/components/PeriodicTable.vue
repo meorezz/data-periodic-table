@@ -266,13 +266,14 @@ onBeforeUnmount(() => {
 .periodic-page { width: 100%; min-height: 100vh; padding: 22px 28px; box-sizing: border-box; background: radial-gradient(circle at 50% 35%, #20283e, #0d111b 70%); color: #eef2ff; overflow: hidden; }
 .header, .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .header { padding-bottom: 18px; border-bottom: 1px solid #30394f; }
-.profile { display: flex; align-items: center; gap: 12px; }
+.profile { display: flex; align-items: center; gap: 12px; text-align: left; }
 .avatar { width: 40px; height: 40px; border-radius: 50%; }
 .email, .toolbar p { color: #9da8c2; font-size: 12px; margin: 3px 0 0; }
 .sign-out, .views button { border: 1px solid #485572; border-radius: 7px; padding: 8px 14px; color: #dce5ff; background: #182137; cursor: pointer; text-transform: capitalize; }
-.toolbar { padding: 20px 0 10px; }
+.toolbar { align-items: flex-start; padding: 20px 0 10px; }
+.toolbar > div { text-align: left; }
 h1 { margin: 0; color: #fff; font-size: 26px; }
-.toolbar p { margin: 4px 0 0; }
+.toolbar p { margin: 4px 0 0; line-height: 1.4; }
 .views { display: flex; justify-content: center; gap: 7px; padding-top: 10px; }
 .views button:hover, .sign-out:hover { background: #263453; }
 .viewport { position: relative; height: min(70vh, 720px); min-height: 480px; }
