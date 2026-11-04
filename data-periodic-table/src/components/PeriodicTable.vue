@@ -25,6 +25,9 @@ const TABLE_COLUMNS = 20
 const TABLE_ROWS = 10
 const TABLE_CELL_WIDTH = 140
 const TABLE_CELL_HEIGHT = 180
+const GRID_COLUMNS = 10
+const GRID_ROWS = 4
+const GRID_LAYERS = 5
 
 const elementRows = [
   ['H', 'Hydrogen', '1.008'], ['He', 'Helium', '4.003'], ['Li', 'Lithium', '6.94'], ['Be', 'Beryllium', '9.012'], ['B', 'Boron', '10.81'], ['C', 'Carbon', '12.011'], ['N', 'Nitrogen', '14.007'], ['O', 'Oxygen', '15.999'], ['F', 'Fluorine', '18.998'], ['Ne', 'Neon', '20.180'],
@@ -133,16 +136,23 @@ function makeTargets(object, number) {
   targets.sphere.push(sphere)
 
   const helix = new THREE.Object3D()
-  const angle = number * 0.175 + Math.PI
-  helix.position.setFromCylindricalCoords(900, angle, (number - 38) * 15)
+  const helixIndex = number - 1
+  const strand = helixIndex % 2
+  const strandIndex = Math.floor(helixIndex / 2)
+  const angle = strandIndex * 0.28 + strand * Math.PI
+  helix.position.setFromCylindricalCoords(900, angle, (strandIndex - 29) * 30)
   const helixVector = new THREE.Vector3().copy(helix.position)
   helix.lookAt(helixVector.multiplyScalar(2))
   targets.helix.push(helix)
 
   const grid = new THREE.Object3D()
-  grid.position.x = ((number % 5) * 400) - 800
-  grid.position.y = (-Math.floor(number / 5) % 5) * 400 + 800
-  grid.position.z = (-Math.floor(number / 25) * 1000) + 1000
+  const gridIndex = number - 1
+  const gridColumn = gridIndex % GRID_COLUMNS
+  const gridRow = Math.floor(gridIndex / GRID_COLUMNS) % GRID_ROWS
+  const gridLayer = Math.floor(gridIndex / (GRID_COLUMNS * GRID_ROWS))
+  grid.position.x = (gridColumn - (GRID_COLUMNS - 1) / 2) * 400
+  grid.position.y = ((GRID_ROWS - 1) / 2 - gridRow) * 400
+  grid.position.z = ((GRID_LAYERS - 1) / 2 - gridLayer) * 400
   targets.grid.push(grid)
   object.position.set(0, 0, 0)
 }
@@ -226,7 +236,11 @@ onBeforeUnmount(() => {
     <div ref="viewport" class="viewport"></div>
     <div class="views">
       <button v-for="view in ['table', 'sphere', 'helix', 'grid']" :key="view" @click="transform(view)">{{ view }}</button>
-      <span class="legend"><i class="legend-low"></i>Under $100K <i class="legend-medium"></i>$100K–$200K <i class="legend-high"></i>Over $200K</span>
+      <span class="legend">
+        <span>LOW</span>
+        <i class="legend-bar"></i>
+        <span>HIGH</span>
+      </span>
     </div>
     <aside v-if="selectedElement" class="details">
       <button class="close" aria-label="Close element details" @click="selectedElement = null">×</button>
@@ -258,9 +272,9 @@ h1 { margin: 0; color: #fff; font-size: 26px; }
 :global(.sheet-content img) { width: 48px; height: 48px; margin: 0 auto 5px; border-radius: 50%; object-fit: cover; }
 :global(.sheet-content strong) { display: block; max-height: 30px; overflow: hidden; font-size: 13px; line-height: 1.05; text-overflow: ellipsis; }
 :global(.sheet-content small) { display: block; overflow: hidden; margin-top: 3px; font-size: 9px; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
-:global(.sheet-content.net-worth-low) { background: rgba(190, 45, 45, .96); }
-:global(.sheet-content.net-worth-medium) { background: rgba(218, 125, 35, .96); }
-:global(.sheet-content.net-worth-high) { background: rgba(42, 139, 76, .96); }
+:global(.sheet-content.net-worth-low) { background: rgba(65, 18, 18, .98); border: 2px solid #be2d2d; }
+:global(.sheet-content.net-worth-medium) { background: rgba(62, 53, 12, .98); border: 2px solid #d5c51f; }
+:global(.sheet-content.net-worth-high) { background: rgba(12, 55, 27, .98); border: 2px solid #2a8b4c; }
 :global(.element:hover) { box-shadow: 0 0 24px rgba(160, 210, 255, .7); }
 :global(.element strong) { display: block; margin-top: 20px; font-size: 38px; line-height: 1; text-align: center; }
 :global(.element span:not(.number)), :global(.element small) { display: block; text-align: center; }
@@ -272,9 +286,8 @@ h1 { margin: 0; color: #fff; font-size: 26px; }
 :global(.element .sheet-content small) { margin-top: 3px; color: white; }
 :global(.nonmetal) { background: rgba(38, 104, 119, .88); }:global(.noble-gas) { background: rgba(100, 62, 132, .88); }:global(.metalloid) { background: rgba(117, 91, 47, .9); }:global(.lanthanide) { background: rgba(46, 106, 91, .9); }:global(.actinide) { background: rgba(107, 60, 75, .9); }
 .details { position: fixed; right: 40px; bottom: 40px; width: 220px; padding: 20px; border: 1px solid #52658c; border-radius: 12px; background: rgba(14, 22, 38, .95); box-shadow: 0 10px 30px #0008; }
-.legend { display: flex; align-items: center; gap: 5px; margin-left: 14px; color: #b7c8ec; font-size: 11px; }
-.legend i { width: 12px; height: 12px; border-radius: 2px; }
-.legend-low { background: #be2d2d; }.legend-medium { background: #da7d23; }.legend-high { background: #2a8b4c; }
+.legend { display: flex; align-items: center; gap: 5px; margin-left: 14px; padding: 3px 5px; color: #fff; font-size: 9px; }
+.legend-bar { width: 92px; height: 7px; border: 1px solid #fff; background: linear-gradient(90deg, #e53935 0%, #ff8c2f 30%, #ffe52f 55%, #9bd438 78%, #2a8b4c 100%); }
 .details strong { display: block; font-size: 48px; color: #9cc4ff; }.details h2 { margin: 4px 0; color: #fff; font-size: 20px; }.details p { color: #b5c1d9; font-size: 13px; }.detail-number { color: #91a1c2; font-size: 12px; }.close { float: right; border: 0; background: none; color: #fff; font-size: 24px; cursor: pointer; }
 @media (max-width: 700px) { .periodic-page { padding: 16px; border-radius: 0; min-height: 100vh; }.toolbar { align-items: flex-start; flex-direction: column; }.views { flex-wrap: wrap; }.viewport { min-height: 430px; height: 62vh; }.details { right: 16px; bottom: 16px; }.element { width: 100px; height: 140px; } }
 </style>
