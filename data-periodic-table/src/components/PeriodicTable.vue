@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.periodic-page { width: min(1400px, 100%); min-height: calc(100vh - 48px); padding: 22px 28px; box-sizing: border-box; border: 1px solid #252b3b; border-radius: 16px; background: radial-gradient(circle at 50% 35%, #20283e, #0d111b 70%); color: #eef2ff; overflow: hidden; }
+.periodic-page { width: 100%; min-height: 100vh; padding: 22px 28px; box-sizing: border-box; background: radial-gradient(circle at 50% 35%, #20283e, #0d111b 70%); color: #eef2ff; overflow: hidden; }
 .header, .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .header { padding-bottom: 18px; border-bottom: 1px solid #30394f; }
 .profile { display: flex; align-items: center; gap: 12px; }

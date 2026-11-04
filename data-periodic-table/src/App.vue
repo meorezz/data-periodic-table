@@ -78,11 +78,8 @@ onMounted(() => {
 .page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
-  padding: 24px;
-  background: #f5f6f8;
+  background: #0d111b;
   font-family: Arial, sans-serif;
 }
 </style>
