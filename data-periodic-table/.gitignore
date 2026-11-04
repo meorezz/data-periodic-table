@@ -25,6 +25,8 @@ dist-ssr
 
 # Env files
 .env
+.venv/
+venv/
 
 # Service Account Key
 *.json
