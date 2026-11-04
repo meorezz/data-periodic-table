@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # ---------------------------------------------------------------------------
 # The long ID in your sheet URL:
 #   https://docs.google.com/spreadsheets/d/<<< THIS PART >>>/edit
-SHEET_ID = os.getenv("SHEET_ID", "PASTE_YOUR_SHEET_ID_HERE")
+SHEET_ID = os.getenv("SHEET_ID", "1kBEQG4bh92aEFbxOLEA3dmAFLM66sKqihRYqwyyIXxM")
 # The name of the tab at the bottom of the sheet (case-sensitive)
 WORKSHEET_NAME = os.getenv("WORKSHEET_NAME", "Sheet1")
 # ---------------------------------------------------------------------------
@@ -55,8 +55,7 @@ def get_current_user(authorization: str = Header(default="")):
         raise HTTPException(status_code=401, detail="Missing token")
     token = authorization.split(" ", 1)[1]
     try:
-        # clock_skew_seconds avoids "Token used too early" errors from small clock drift
-        return auth.verify_id_token(token, clock_skew_seconds=10)
+        return auth.verify_id_token(token)
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
