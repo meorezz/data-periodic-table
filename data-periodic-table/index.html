@@ -1,13 +1,90 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>data-periodic-table</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign In With Google</title>
+<style>
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:#f5f6f8; font-family:Arial, sans-serif; }
+  .card { background:#fff; border:1px solid #eee; border-radius:6px; padding:48px 56px;
+          text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.05); max-width:360px; }
+  h1 { font-size:18px; font-weight:500; color:#444; margin:0 0 12px; }
+  p  { font-size:12px; color:#666; margin:0 0 28px; }
+  .gbtn { display:inline-flex; align-items:center; gap:10px; background:#4285f4; color:#fff;
+          border:0; border-radius:4px; padding:8px 14px 8px 8px; font-size:13px; cursor:pointer;
+          box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .gbtn:hover { background:#3b78dc; }
+  .gicon { background:#fff; border-radius:3px; width:28px; height:28px; display:flex;
+           align-items:center; justify-content:center; }
+  #profile { display:none; }
+  #profile img { width:72px; height:72px; border-radius:50%; }
+  .out { margin-top:20px; background:none; border:1px solid #ccc; padding:6px 14px;
+         border-radius:4px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="card" id="login">
+  <h1>Welcome Back</h1>
+  <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit</p>
+  <button class="gbtn" id="signin">
+    <span class="gicon">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3.1-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+    </span>
+    Sign in with Google
+  </button>
+</div>
+
+<div class="card" id="profile">
+  <img id="pic" alt="">
+  <h1 id="name"></h1>
+  <p id="email"></p>
+  <button class="out" id="signout">Sign out</button>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  //OAuth Client ID from Google Cloud Console
+  const CLIENT_ID = "495876376743-16e8lktvgkp88iq8m0c9nfh7up48k5sm.apps.googleusercontent.com";
+
+  let tokenClient, accessToken;
+
+  window.addEventListener("load", () => {
+    const wait = setInterval(() => {
+      if (window.google && google.accounts) {
+        clearInterval(wait);
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: "openid email profile",
+          prompt: "select_account",          // shows "Choose an account" screen
+          callback: async (resp) => {
+            if (resp.error) return alert("Login failed: " + resp.error);
+            accessToken = resp.access_token;
+            const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+                                  { headers: { Authorization: "Bearer " + accessToken } });
+            showProfile(await r.json());
+          }
+        });
+      }
+    }, 100);
+  });
+
+  document.getElementById("signin").onclick = () => tokenClient.requestAccessToken();
+
+  document.getElementById("signout").onclick = () => {
+    if (accessToken) google.accounts.oauth2.revoke(accessToken);
+    document.getElementById("profile").style.display = "none";
+    document.getElementById("login").style.display = "block";
+  };
+
+  function showProfile(u) {
+    document.getElementById("pic").src = u.picture;
+    document.getElementById("name").textContent = u.name;
+    document.getElementById("email").textContent = u.email;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("profile").style.display = "block";
+  }
+</script>
+</body>
 </html>

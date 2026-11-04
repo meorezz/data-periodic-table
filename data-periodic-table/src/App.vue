@@ -1,7 +1,7 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import GoogleLogin from './components/GoogleLogin.vue'
 </script>
 
 <template>
-  <HelloWorld />
-</template>
+  <GoogleLogin.vue>
+  </template>
