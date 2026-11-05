@@ -1,4 +1,27 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "cSpell.words": [
+        "APIError",
+        "CORSMiddleware",
+        "FastAPI",
+        "firebase",
+        "firebase_admin",
+        "firestore",
+        "gspread",
+        "HTTPException",
+        "SpreadsheetNotFound",
+        "uvicorn",
+        "VITE",
+        "WorksheetNotFound"
+    ],
+    "cSpell.ignoreWords": [
+        "adipiscing",
+        "amet",
+        "consectetuer",
+        "elit",
+        "ipsum",
+        "lorem",
+        "sit"
+    ]
 }

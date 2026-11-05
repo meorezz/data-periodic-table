@@ -1,7 +1,3 @@
-"""
-FastAPI backend: verifies Firebase login tokens + reads a Google Sheet.
-Run:  uvicorn main:app --reload --port 8000
-"""
 import os
 import time
 from pathlib import Path
@@ -12,17 +8,10 @@ from firebase_admin import credentials, auth, firestore
 from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-# ---------------------------------------------------------------------------
-# CONFIG: edit these two values
-# ---------------------------------------------------------------------------
-# The long ID in your sheet URL:
-#   https://docs.google.com/spreadsheets/d/<<< THIS PART >>>/edit
-SHEET_ID = os.getenv("SHEET_ID", "1kBEQG4bh92aEFbxOLEA3dmAFLM66sKqihRYqwyyIXxM")
-# The name of the tab at the bottom of the sheet (case-sensitive)
-WORKSHEET_NAME = os.getenv("WORKSHEET_NAME", "Data Template")
-# ---------------------------------------------------------------------------
 
-# --- Firebase Admin setup (uses the key file you download from the console) ---
+SHEET_ID = os.getenv("SHEET_ID", "1kBEQG4bh92aEFbxOLEA3dmAFLM66sKqihRYqwyyIXxM")
+WORKSHEET_NAME = os.getenv("WORKSHEET_NAME", "Data Template")
+
 BASE_DIR = Path(__file__).resolve().parent
 SERVICE_ACCOUNT_FILE = Path(
     os.getenv("SERVICE_ACCOUNT_FILE", BASE_DIR / "ServiceAccountKey.json")
@@ -32,7 +21,7 @@ cred = credentials.Certificate(str(SERVICE_ACCOUNT_FILE))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# --- Google Sheets client: same key file, read-only permission ---
+
 gc = gspread.service_account(
     filename=str(SERVICE_ACCOUNT_FILE),
     scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"],
@@ -105,11 +94,9 @@ def me(decoded=Depends(get_current_user)):
     return data
 
 
-# ---------------------------------------------------------------------------
 # Google Sheet data (protected: only logged-in users can call it)
-# ---------------------------------------------------------------------------
 _cache = {"time": 0, "data": None}
-CACHE_SECONDS = 30  # avoids hitting Google's read quota on every refresh
+CACHE_SECONDS = 30
 TOKEN_CLOCK_DRIFT_RETRY_SECONDS = 3
 
 
